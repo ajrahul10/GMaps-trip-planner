@@ -1,6 +1,6 @@
 // Instantiate a directions service.
 const directionsService = new google.maps.DirectionsService();
-// Create a map and center it on Manhattan.
+// Create a map and center it on Manhattan, USA.
 const map = new google.maps.Map(document.getElementById("map"), {
   zoom: 3,
   center: { lat: 40.771, lng: -73.974 },
@@ -32,8 +32,10 @@ function calcRoute() {
     map
   ) {
 
+    // if maxHours is not specified by user then send an alert message
     let maxDriveHours = document.getElementById("maxHours").value;
-    if(maxDriveHours.trim().length === 0 || +maxDriveHours <= 0) {
+    if(maxDriveHours.trim().length === 0 || +maxDriveHours < 1) {
+      alert('Request failed as Driving Hours / day is not specified or it is less 1');
       return;
     }
     // First, remove any existing markers from the map.
@@ -57,7 +59,7 @@ function calcRoute() {
           directionsRenderer.setDirections(result);
           showSteps(result, markerArray, stepDisplay, map, maxDriveHours);
         } else {
-          window.alert("Directions request failed due to " + status);
+          window.alert("Directions request failed as Origin or Destination is not specified or incorrect");
         }
       }
     );
@@ -65,20 +67,28 @@ function calcRoute() {
   
   function showSteps(directionResult, markerArray, stepDisplay, map, maxDriveHours) {
 
+    // find the route between source and destination
     const myRoute = directionResult.routes[0].legs[0];
-    const totalTime = myRoute.duration.value;
-    const driveHours = maxDriveHours * 3600;
+    const totalJourneyTime = myRoute.duration.value;
+    const drivingHoursPerDay = maxDriveHours * 3600;
 
-    let divided_parts = round(totalTime, driveHours);
+    // calculate the number of stops with 'total time' and 'drive hours' specified by user
+    let journeyCount = round(totalJourneyTime, drivingHoursPerDay);
 
+    // find all the waypoints in the direction
     const overview_path = directionResult.routes[0].overview_path;
+
     let route_length = overview_path.length;
-    for (let i = 0; i < divided_parts; i++) {
+    // split the total journey into multiple stops and placing the markers on the map
+    for (let i = 0; i < journeyCount; i++) {
           const marker = (markerArray[i] =
             markerArray[i] || new google.maps.Marker());
           marker.setMap(map);
           
-          marker.setPosition(overview_path[Math.floor((i+1) * (route_length / divided_parts) - 1)]);
+          // set the stop marker along the direction 
+          marker.setPosition(overview_path[Math.floor((i+1) * (route_length / journeyCount) - 1)]);
+
+          // attach the instruction text
           attachInstructionText(
             stepDisplay,
             marker,
@@ -98,6 +108,7 @@ function attachInstructionText(stepDisplay, marker, text, map) {
   });
 }
 
+// rounding off the total stops throughout the journey 
 var round = function(totalTime, maxHours) {
   let n = totalTime / maxHours;
   var h = (n * 100) % 100;
@@ -110,6 +121,7 @@ var options = {
   types: ['(cities)']
 }
 
+// autocomplete input buttons on the UI
 var input1 = document.getElementById("from");
 var autocomplete1 = new google.maps.places.Autocomplete(input1, options);
 
