@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Plan your Road Trip!!</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <link rel="stylesheet" type="text/css" href="./style.css" />
+  </head>
+  <body>
+    <div id="floating-panel">
+      <b>Start: </b>
+      <input class="loc-dropdown" type="text" id="from" placeholder="Origin">
+      <input class="loc-dropdown" type="text" id="to" placeholder="Destination">
+      <input class="loc-dropdown" type="number" id="maxHours" placeholder="Driving hours / day">
+      <button type="button" id="calc-emission" onclick="calcRoute();">CALCULATE</button>
+    </div>
+    <div id="map"></div>
+    &nbsp;
+    <div id="warnings-panel"></div>
+
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAs8jhj8CRFAEPTi4RjP9RIYizo7sST1oo&libraries=places"
+    ></script>
+    <script src="./index.js"></script>
+  </body>
+</html>
