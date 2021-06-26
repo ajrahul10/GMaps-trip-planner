@@ -120,7 +120,8 @@ function attachInstructionText(stepDisplay, marker, map, i) {
           let len = locAddress.length;
 
           // attach the instruction text
-          let text = `<b>Stop ${i+1}</b><br />${locAddress[len-3]}, ${locAddress[len-2]}, ${locAddress[len-1]}`;
+          let text = `<b>Stop ${i+1}</b><br />${locAddress[len-3]}, ${locAddress[len-2]}, ${locAddress[len-1]}
+          <br /><a target="_blank" href="https://www.google.com/search?q=Places to stay in ${locAddress[len-3]}, ${locAddress[len-2]}">Places to stay nearby</a>`;
           markerAddress[i] = text;
           stepDisplay.setContent(text);
           stepDisplay.open(map, marker);
