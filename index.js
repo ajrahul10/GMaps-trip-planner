@@ -1,5 +1,7 @@
 // Instantiate a directions service.
 const directionsService = new google.maps.DirectionsService();
+// Instantiate a geocoder service.
+const geocoder = new google.maps.Geocoder();
 // Create a map and center it on Manhattan, USA.
 const map = new google.maps.Map(document.getElementById("map"), {
   zoom: 3,
@@ -9,6 +11,8 @@ const map = new google.maps.Map(document.getElementById("map"), {
 const directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
 
 const markerArray = [];
+let markerAddress = [];
+let markerClickEvent = [];
 
 function calcRoute() {
     
@@ -41,7 +45,9 @@ function calcRoute() {
     // First, remove any existing markers from the map.
     for (let i = 0; i < markerArray.length; i++) {
       markerArray[i].setMap(null);
+      google.maps.event.removeListener(markerClickEvent[i]);
     }
+    markerAddress = [];
     // Retrieve the start and end locations and create a DirectionsRequest using
     // WALKING directions.
     directionsService.route(
@@ -80,31 +86,56 @@ function calcRoute() {
 
     let route_length = overview_path.length;
     // split the total journey into multiple stops and placing the markers on the map
+
     for (let i = 0; i < journeyCount; i++) {
           const marker = (markerArray[i] =
             markerArray[i] || new google.maps.Marker());
           marker.setMap(map);
           
+          let stopLocation = overview_path[Math.floor((i+1) * (route_length / journeyCount) - 1)];
           // set the stop marker along the direction 
-          marker.setPosition(overview_path[Math.floor((i+1) * (route_length / journeyCount) - 1)]);
-
-          // attach the instruction text
+          marker.setPosition(stopLocation);
+          
           attachInstructionText(
             stepDisplay,
             marker,
-            'Stop ' + (i+1),
-            map
+            map, 
+            i
           );
-      }
-
+    }
+    
   }
+
   
-function attachInstructionText(stepDisplay, marker, text, map) {
-  google.maps.event.addListener(marker, "click", () => {
+function attachInstructionText(stepDisplay, marker, map, i) {
+  markerClickEvent[i] = google.maps.event.addListener(marker, "click", () => {
     // Open an info window when the marker is clicked on, containing the text
     // of the step.
-    stepDisplay.setContent(text);
-    stepDisplay.open(map, marker);
+    if(!markerAddress[i]) {
+      // finding nearest locality name through reverse geocoding
+      // and adding on the display when the marker is clicked
+      geocoder.geocode({location: marker.position}).then(res => {
+        if(res.results[0]) {
+          let locAddress = res.results[0].formatted_address.split(',');
+          let len = locAddress.length;
+
+          // attach the instruction text
+          let text = `<b>Stop ${i+1}</b><br />${locAddress[len-3]}, ${locAddress[len-2]}, ${locAddress[len-1]}`;
+          markerAddress[i] = text;
+          stepDisplay.setContent(text);
+          stepDisplay.open(map, marker);
+        } else {
+          // attach the instruction text
+          let text = `<b>Stop ${i+1}</b>`;
+          markerAddress[i] = text;
+          stepDisplay.setContent(text);
+          stepDisplay.open(map, marker);
+        }
+      });
+    } else {
+      stepDisplay.setContent(markerAddress[i]);
+      stepDisplay.open(map, marker);
+    }
   });
 }
 
